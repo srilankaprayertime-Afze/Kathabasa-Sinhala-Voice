@@ -97,7 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Gemini Premium mode requires a Google AI Studio API Key to generate beautiful, natural Sinhala speech.',
+                      'Gemini Premium mode requires your own Google AI Studio API key. Without a saved key, the app uses Offline TTS.',
                       style: TextStyle(fontSize: 12.5, color: Colors.grey, height: 1.4),
                     ),
                     const SizedBox(height: 16),
@@ -190,7 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Gemini 3.1 Flash TTS Preview',
+                              'Gemini 2.5 Flash TTS Preview',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -198,7 +198,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                             ),
                             const Text(
-                              'gemini-3.1-flash-tts-preview',
+                              'gemini-2.5-flash-preview-tts',
                               style: TextStyle(fontSize: 10.5, color: Colors.grey, fontWeight: FontWeight.bold),
                             ),
                           ],

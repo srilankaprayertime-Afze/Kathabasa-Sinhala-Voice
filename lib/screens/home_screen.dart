@@ -1065,7 +1065,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               const SizedBox(height: 8),
               const Text(
-                'Please enter your API Key below to enable high-quality Gemini Premium TTS speech generation.',
+                'Enter your own Google AI Studio API key to use Gemini Premium. You can use Offline TTS without a key.',
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
               const SizedBox(height: 12),

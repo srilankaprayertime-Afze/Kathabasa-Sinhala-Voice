@@ -20,16 +20,14 @@ class TtsService extends ChangeNotifier {
   File? _lastAudioFile;
   Uint8List? _lastWavBytes;
   
-  // Built-in default API key for immediate out-of-the-box usage.
-  // Users can override this in Settings if the quota is exceeded.
-  static const String _defaultApiKey = 'AIzaSyC_ao91sbI7S7vATcDw_eH92gbBf2gnyxQ';
+  static const String _defaultApiKey = '';
   
   TtsMode _mode = TtsMode.gemini;
   PlaybackState _playbackState = PlaybackState.stopped;
   
   // Gemini TTS Configuration Options (Steerable parameters matching AI Studio)
   String _apiKey = '';
-  final String _modelName = 'gemini-3.1-flash-tts-preview';
+  final String _modelName = 'gemini-2.5-flash-preview-tts';
   String _voiceName = 'Algenib';
   String _audioProfile = 'A smooth, premium commercial voice.';
   String _scene = 'The Sound Stage Booth.';
@@ -97,6 +95,11 @@ class TtsService extends ChangeNotifier {
     _offlinePitch = prefs.getDouble('offline_pitch') ?? 1.0;
     _offlineRate = prefs.getDouble('offline_rate') ?? 0.5;
     _offlineVolume = prefs.getDouble('offline_volume') ?? 1.0;
+
+    if (_mode == TtsMode.gemini && activeApiKey.isEmpty) {
+      _mode = TtsMode.offline;
+      await prefs.setInt('tts_mode', _mode.index);
+    }
 
     // Configure local flutter_tts
     await _flutterTts.setLanguage("si-LK");
@@ -248,7 +251,7 @@ class TtsService extends ChangeNotifier {
     } else {
       final currentKey = activeApiKey;
       if (currentKey.isEmpty) {
-        throw Exception("Gemini API Key is not configured. Please add it in Settings.");
+        throw Exception("Add your Gemini API key in Settings, or use Offline TTS.");
       }
 
       _playbackState = PlaybackState.loading;
@@ -315,7 +318,7 @@ $text
         if (response.statusCode != 200) {
           final errorBody = jsonDecode(response.body);
           final errorMsg = errorBody['error']?['message'] ?? 'Failed to connect to Gemini API';
-          throw Exception(errorMsg);
+          throw Exception(_friendlyGeminiError(errorMsg));
         }
 
         final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -395,6 +398,22 @@ $text
         rethrow;
       }
     }
+  }
+
+  String _friendlyGeminiError(String message) {
+    final lower = message.toLowerCase();
+    if (lower.contains('denied access') ||
+        lower.contains('permission') ||
+        lower.contains('forbidden')) {
+      return 'Gemini access is blocked for this API key. Add a valid Google AI Studio key in Settings, or switch to Offline TTS.';
+    }
+    if (lower.contains('api key') || lower.contains('apikey')) {
+      return 'Your Gemini API key is missing or invalid. Please update it in Settings.';
+    }
+    if (lower.contains('quota')) {
+      return 'This Gemini API key has reached its quota. Please add another key in Settings or use Offline TTS.';
+    }
+    return message;
   }
 
   // Playback Control Methods
