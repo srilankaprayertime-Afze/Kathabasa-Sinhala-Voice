@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:kathabasa_sinhala_voice/services/web_download_helper.dart';
 
 enum TtsMode { gemini, offline }
 enum PlaybackState { stopped, playing, paused, loading }
@@ -17,6 +18,7 @@ class TtsService extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
   
   File? _lastAudioFile;
+  Uint8List? _lastWavBytes;
   
   TtsMode _mode = TtsMode.gemini;
   PlaybackState _playbackState = PlaybackState.stopped;
@@ -341,16 +343,29 @@ $text
         wavBytes.setRange(0, wavHeader.length, wavHeader);
         wavBytes.setRange(wavHeader.length, wavBytes.length, rawPcm);
 
-        // Write to temporary directory
-        final tempDir = await getTemporaryDirectory();
-        final file = File('${tempDir.path}/gemini_speech.wav');
-        await file.writeAsBytes(wavBytes);
-        _lastAudioFile = file;
+        _lastWavBytes = wavBytes;
 
-        // Play audio
-        _playbackState = PlaybackState.playing;
-        notifyListeners();
-        await _audioPlayer.play(DeviceFileSource(file.path));
+        if (kIsWeb) {
+          final url = getBlobUrlWeb(wavBytes);
+          if (url != null) {
+            _playbackState = PlaybackState.playing;
+            notifyListeners();
+            await _audioPlayer.play(UrlSource(url));
+          } else {
+            throw Exception("Failed to create Web Audio Blob URL.");
+          }
+        } else {
+          // Write to temporary directory
+          final tempDir = await getTemporaryDirectory();
+          final file = File('${tempDir.path}/gemini_speech.wav');
+          await file.writeAsBytes(wavBytes);
+          _lastAudioFile = file;
+
+          // Play audio
+          _playbackState = PlaybackState.playing;
+          notifyListeners();
+          await _audioPlayer.play(DeviceFileSource(file.path));
+        }
 
       } catch (e) {
         _playbackState = PlaybackState.stopped;
@@ -449,6 +464,7 @@ $text
   }
 
   Future<File?> generateOfflineAudioFile(String text) async {
+    if (kIsWeb) return null;
     if (text.trim().isEmpty) return null;
     try {
       final tempDir = await getTemporaryDirectory();
@@ -482,6 +498,22 @@ $text
   }
 
   Future<String?> downloadAudio(String currentText) async {
+    if (kIsWeb) {
+      if (_mode == TtsMode.gemini) {
+        if (_lastWavBytes == null) {
+          throw Exception("No generated audio available. Please speak or generate audio first.");
+        }
+        final String cleanText = currentText.length > 15 
+            ? currentText.substring(0, 15).replaceAll(RegExp(r'[^\w\s\u0D80-\u0DFF]'), '') 
+            : currentText.replaceAll(RegExp(r'[^\w\s\u0D80-\u0DFF]'), '');
+        final String exportName = "Kathabasa_${cleanText.trim().replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.wav";
+        downloadBytesWeb(_lastWavBytes!, exportName);
+        return "downloaded_web";
+      } else {
+        throw Exception("Downloading offline TTS is not supported on Web. Please switch to Gemini Premium mode!");
+      }
+    }
+
     File? audioFile;
     if (_mode == TtsMode.gemini) {
       audioFile = _lastAudioFile;
@@ -527,6 +559,22 @@ $text
   }
 
   Future<void> shareAudio(String currentText) async {
+    if (kIsWeb) {
+      if (_mode == TtsMode.gemini) {
+        if (_lastWavBytes == null) {
+          throw Exception("No generated audio available. Please speak or generate audio first.");
+        }
+        final String cleanText = currentText.length > 15 
+            ? currentText.substring(0, 15).replaceAll(RegExp(r'[^\w\s\u0D80-\u0DFF]'), '') 
+            : currentText.replaceAll(RegExp(r'[^\w\s\u0D80-\u0DFF]'), '');
+        final String exportName = "Kathabasa_${cleanText.trim().replaceAll(' ', '_')}.wav";
+        downloadBytesWeb(_lastWavBytes!, exportName);
+        return;
+      } else {
+        throw Exception("Sharing offline TTS is not supported on Web. Please switch to Gemini Premium mode!");
+      }
+    }
+
     File? audioFile;
     if (_mode == TtsMode.gemini) {
       audioFile = _lastAudioFile;
