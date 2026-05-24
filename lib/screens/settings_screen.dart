@@ -315,26 +315,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: (val) => themeProvider.toggleTheme(val),
               ),
             ),
-            const SizedBox(height: 24),
-
-            // App Version Info
-            Center(
-              child: Column(
-                children: [
-                  Text(
-                    'Kathabasa Sinhala Voice',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.grey : AppTheme.textSecondary,
+            // About & Info / Developer Credit Card
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0),
+                side: BorderSide(color: isDark ? const Color(0xFF2C2C35) : Colors.grey.shade200),
+              ),
+              color: isDark ? const Color(0xFF1E1E24) : Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.info_outline_rounded, color: Colors.amber, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'About & Info',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : AppTheme.textPrimary,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Version 1.0.0+1 • Premium Steerable TTS Studio',
-                    style: TextStyle(fontSize: 11, color: Colors.grey),
-                  ),
-                ],
+                    const SizedBox(height: 14),
+                    Text(
+                      'Kathabasa Sinhala Voice',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Version 1.0.0',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const Divider(height: 20),
+                    const Text(
+                      'An advanced AI-powered text-to-speech studio tailored for Sri Lankan Sinhala, utilizing high-quality Gemini TTS models and local offline synthesis. Ideal for voiceovers, sharing audio, and content creation.',
+                      style: TextStyle(fontSize: 12.5, color: Colors.grey, height: 1.45),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12.0),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF16161C) : Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(14.0),
+                        border: Border.all(color: isDark ? const Color(0xFF2C2C35) : Colors.grey.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6.0),
+                            decoration: BoxDecoration(
+                              color: Colors.cyan.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.code_rounded, color: Colors.cyan, size: 18),
+                          ),
+                          const SizedBox(width: 12),
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Developer Credit',
+                                style: TextStyle(fontSize: 9.5, color: Colors.grey, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Developed by Afkar Zemer',
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 40),

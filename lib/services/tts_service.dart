@@ -20,6 +20,10 @@ class TtsService extends ChangeNotifier {
   File? _lastAudioFile;
   Uint8List? _lastWavBytes;
   
+  // Built-in default API key for immediate out-of-the-box usage.
+  // Users can override this in Settings if the quota is exceeded.
+  static const String _defaultApiKey = 'AIzaSyC_ao91sbI7S7vATcDw_eH92gbBf2gnyxQ';
+  
   TtsMode _mode = TtsMode.gemini;
   PlaybackState _playbackState = PlaybackState.stopped;
   
@@ -52,6 +56,8 @@ class TtsService extends ChangeNotifier {
   bool get isLoading => _playbackState == PlaybackState.loading;
   
   String get apiKey => _apiKey;
+  String get activeApiKey => _apiKey.trim().isNotEmpty ? _apiKey.trim() : _defaultApiKey;
+  bool get hasCustomApiKey => _apiKey.trim().isNotEmpty;
   String get modelName => _modelName;
   String get voiceName => _voiceName;
   String get audioProfile => _audioProfile;
@@ -126,6 +132,21 @@ class TtsService extends ChangeNotifier {
     });
 
     notifyListeners();
+  }
+
+  // Unlock audio on web browsers (Safari requires a user-gesture-initiated play)
+  void unlockAudioWeb() {
+    if (kIsWeb) {
+      try {
+        // Play a tiny silent WAV to unlock the AudioContext during the user's tap event
+        _audioPlayer.play(
+          UrlSource("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA"),
+          volume: 0.01,
+        );
+      } catch (e) {
+        debugPrint("Silent audio unlock failed: $e");
+      }
+    }
   }
 
   // Setters
@@ -225,7 +246,8 @@ class TtsService extends ChangeNotifier {
       notifyListeners();
       await _flutterTts.speak(text);
     } else {
-      if (_apiKey.trim().isEmpty) {
+      final currentKey = activeApiKey;
+      if (currentKey.isEmpty) {
         throw Exception("Gemini API Key is not configured. Please add it in Settings.");
       }
 
@@ -234,7 +256,7 @@ class TtsService extends ChangeNotifier {
 
       try {
         final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/$_modelName:generateContent?key=$_apiKey'
+          'https://generativelanguage.googleapis.com/v1beta/models/$_modelName:generateContent?key=$currentKey'
         );
 
         // Standardize prompt structure matching AI Studio playground

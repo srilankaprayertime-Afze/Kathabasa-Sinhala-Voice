@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -98,6 +99,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       );
       return;
     }
+
+    // Unlock Safari audio context synchronously during user tap
+    if (kIsWeb) ttsService.unlockAudioWeb();
 
     try {
       if (ttsService.mode == TtsMode.gemini) {
@@ -352,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
 
               // API Key Warning / Manual Entry Card
-              if (ttsService.mode == TtsMode.gemini && ttsService.apiKey.trim().isEmpty)
+              if (ttsService.mode == TtsMode.gemini && ttsService.activeApiKey.isEmpty)
                 _buildApiKeyWarningCard(ttsService, isDark),
 
               // Sound Wave Visualizer
